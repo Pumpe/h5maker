@@ -113,8 +113,14 @@ const mutations = {
   [types.FETCH_PIC_LIST] (state, picList) {
     state.picList = picList
   },
+  [types.FETCH_VIDEO_LIST] (state, videoList) {
+    state.videoList = videoList
+  },
   [types.PUSH_PIC_LIST] (state, ele) {
     state.picList.push(ele)
+  },
+  [types.PUSH_VIDEO_LIST] (state, ele) {
+    state.videoList.push(ele)
   },
   [types.CLEAN_PIC_LIST] (state) {
     state.picList = []

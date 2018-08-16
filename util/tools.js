@@ -5,7 +5,7 @@ var fs = require('fs')
 var mkdirp = require('mkdirp')
 var path = require('path')
 var ejs = require('ejs')
-var fs = require('fs')
+var path = require('path');
 
 const base64ToImg = (imgData, filePath) => {
     var base64Data = imgData.replace(/^data:image\/\w+;base64,/, "")
@@ -15,6 +15,17 @@ const base64ToImg = (imgData, filePath) => {
         fs.writeFile(filePath, dataBuffer, (err) => {
         })
     })
+}
+/**
+ * 获取上传文件后缀
+ * @param {*} imgData
+ */
+const getFileExt = (imgData) => {
+  if (imgData.indexOf('image/gif') > -1) {
+    return '.gif'
+  } else {
+    return '.png'
+  }
 }
 const renderFile = (filePath, data, successCallback) => {
     var rootPath = path.join(__dirname, '../views/')
@@ -40,9 +51,17 @@ const saveFile = (filePath, data, successCallback) => {
     })
 
 }
+const mkdirs = function(dirpath) {
+  if (!fs.existsSync(path.dirname(dirpath))) {
+    mkdirs(path.dirname(dirpath));
+  }
+  fs.mkdirSync(dirpath);
+}
 
 module.exports = {
     base64ToImg,
     renderFile,
-    saveFile
+    saveFile,
+    getFileExt,
+    mkdirs
 }

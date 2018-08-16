@@ -5,6 +5,8 @@ var jsonpatch = require('fast-json-patch')
 var File = require('./file.model')
 var tools = require('../../util/tools')
 var uuid = require('node-uuid')
+var fs = require('fs')
+var path = require('path')
 
 const respondWithResult = (res, statusCode) => {
   statusCode = statusCode || 200
@@ -71,7 +73,7 @@ module.exports.show = (req, res) => {
 }
 
 module.exports.getByThemeId = (req, res) => {
-  return File.find({ themeId: req.params.id }).exec()
+  return File.find({ themeId: req.params.id, fileType:req.query.fileType}).exec()
     .then(handleEntityNotFound(res))
     .then(respondWithResult(res))
     .catch(handleError(res))
@@ -79,21 +81,32 @@ module.exports.getByThemeId = (req, res) => {
 
 // Creates a new File in the DB
 module.exports.create = (req, res) => {
-  var imageInfo = buildImgPath(req.body.themeId || 'all')
-  if (req.body.imgData) {
-    tools.base64ToImg(req.body.imgData, imageInfo.imagePath)
-    req.body.filePath = imageInfo.accessPath
+  if (!req.files) {
+    return res.status(400).send('No files were uploaded.');
   }
-  return File.create(req.body)
-    .then(respondWithResult(res, 201))
-    .catch(handleError(res))
+  let image = req.files.image;
+  var pathInfo = buildImgPath(req.body.themeId || 'all')
+  if (image) {
+    var ext = '.' + image.mimetype.split('/')[1]
+    image.mv(pathInfo.imagePath + ext, err => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      console.log(req.body.themeId, 'themeId')
+      return File.create({filePath: pathInfo.accessPath + ext, themeId: req.body.themeId || '', fileType: req.body.fileType, width: req.body.width, height: req.body.height})
+      .then(respondWithResult(res, 201))
+      .catch(handleError(res))
+    })
+  }
 }
 
 const buildImgPath = (themeId) => {
   // 文件使用uuid生成别名
-  var fileName = uuid.v1().replace(/-/g, '') + '.png'
+  var fileName = uuid.v1().replace(/-/g, '')
   // 文件目录
   var dirPath = 'public/upload/' + themeId
+  // 创建路径
+  fs.existsSync(path.resolve(dirPath)) == false &&tools.mkdirs(dirPath)
   // 图片保存路径
   var imagePath = dirPath + '/' + fileName
   // 图片访问路径

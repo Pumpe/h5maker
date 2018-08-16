@@ -3,49 +3,67 @@
 </template>
 
 <style scoped>
-  .lable {
-    display: block;
-    cursor: pointer;
-    width: 3em;
-    height: 3em;
-    background: url("../assets/addpic_large.png") no-repeat;
-    background-size: cover;
-  }
+.lable {
+  display: block;
+  cursor: pointer;
+  width: 3em;
+  height: 3em;
+  background: url("../assets/addpic_large.png") no-repeat;
+  background-size: cover;
+}
 
-  .input {
-    display: none;
-  }
+.input {
+  display: none;
+}
 </style>
 
 <script>
-  import lrz from 'lrz'
-  export default {
-    methods: {
-      fileChange (event) {
-        let file = event.target.files[0]
-        if (file) {
-          lrz(file, {quality: 0.5}).then(result => {
-            if (result.fileLen > 2 * 1024 * 1024) {
-              this.$message.error('请选择小于2M的文件')
-              return
-            }
-            // let reader = new window.FileReader()
-            // reader.onload = (ev) => {
-            let img = document.createElement('img')
-            let base64 = result.base64
+import * as http from '../util/http'
+export default {
+  props: {
+    themeId: {
+      type: String
+    },
+    fileType: {
+      type: String,
+      default: 'image'
+    }
+  },
+  methods: {
+    fileChange (event) {
+      let file = event.target.files[0]
+      if (file) {
+        const formData = new window.FormData()
+        formData.append('image', file)
+        formData.append('themeId', this.themeId)
+        formData.append('fileType', this.fileType)
+        if (this.fileType === 'video') {
+          http.post('/api/upload', formData).then(res => {
+            this.$emit('uploaded', {
+              filePath: res.filePath
+            })
+          })
+        } else {
+          var fr = new window.FileReader()
+          fr.readAsDataURL(file)
+          fr.onload = (e) => {
+            var img = new window.Image()
+            img.src = fr.result
             img.onload = () => {
-              this.$emit('uploaded', {
-                'base64': base64,
-                'width': img.width,
-                'height': img.height
+              formData.append('width', img.width)
+              formData.append('height', img.height)
+              http.post('/api/upload', formData).then(res => {
+                this.$emit('uploaded', {
+                  filePath: res.filePath,
+                  width: img.width,
+                  height: img.height
+                })
               })
             }
-            img.src = base64
-            // }
-            // reader.readAsDataURL(file)
-          })
+          }
         }
       }
     }
   }
+}
 </script>

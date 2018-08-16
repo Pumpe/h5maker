@@ -1,11 +1,10 @@
 <template>
   <div>
     <PicPicker class="ele"
-               @uploaded="uploadImage" :themeId="themeId"></PicPicker>
-    <div class="ele"
-         :style="{ backgroundImage: 'url(' + http + element.filePath + ')' }"
-         @click="selectedImg(element)"
-         v-for="element in picList"></div>
+               @uploaded="uploadVideo" :themeId="themeId" fileType="video"></PicPicker>
+    <video :src="http + element.filePath" class="ele"
+         @click="selectedVideo(element)"
+         v-for="element in videoList"></video>
   </div>
 </template>
 
@@ -14,7 +13,7 @@ import appConst from '../util/appConst'
 import PicPicker from './PicturePicker'
 export default {
   props: {
-    selectedImg: {
+    selectedVideo: {
       type: Function
     },
     themeId: {
@@ -27,17 +26,15 @@ export default {
     }
   },
   computed: {
-    picList () {
-      return this.$store.state.editor.picList
+    videoList () {
+      return this.$store.state.editor.videoList
     }
   },
   methods: {
-    uploadImage (data) {
-      this.$store.dispatch('savePic', {
+    uploadVideo (data) {
+      this.$store.dispatch('saveVideo', {
         'filePath': data['filePath'],
-        'themeId': this.themeId,
-        'width': data['width'],
-        'height': data['height']
+        'themeId': this.themeId
       })
     }
   },
